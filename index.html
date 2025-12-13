@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de Crédito</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --surface: #ffffff;
+            --background: #f1f5f9;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        h1 { margin-top: 0; color: var(--primary); }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        #response {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Validación de Crédito</h1>
+            <p>Complete el formulario para enviar una solicitud de validación al servicio.</p>
+            
+            <form id="creditForm">
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Cliente BackOffice</label>
+                        <input type="text" id="codeClientBackOffice" value="6252">
+                    </div>
+                    <div class="form-group">
+                        <label>Cliente OBT</label>
+                        <input type="text" id="codeClientOBT" value="627">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="name" value="Pedro Vargas">
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Valor</label>
+                        <input type="number" id="value" value="450000">
+                    </div>
+                    <div class="form-group">
+                        <label>Moneda</label>
+                        <select id="currency">
+                            <option value="COP">COP</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Producto</label>
+                        <select id="product">
+                            <option value="AIR">AIR</option>
+                            <option value="HOTEL">HOTEL</option>
+                            <option value="CAR">CAR</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Pago</label>
+                        <select id="paymentType">
+                            <option value="CASH">CASH</option>
+                            <option value="TC">Tarjeta Crédito</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit">Validar Crédito</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Respuesta del Servidor</h2>
+            <div id="response">Esperando solicitud...</div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('creditForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const respDiv = document.getElementById('response');
+            
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+            respDiv.style.display = 'block';
+
+            // Construct XML
+            const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<CreditLimitRQ>
+  <CodeClientBackOffice>${document.getElementById('codeClientBackOffice').value}</CodeClientBackOffice>
+  <CodeClientOBT>${document.getElementById('codeClientOBT').value}</CodeClientOBT>
+  <Name>${document.getElementById('name').value}</Name>
+  <locValidacion>WEB-CLIENT</locValidacion>
+  <value>${document.getElementById('value').value}</value>
+  <Currency>${document.getElementById('currency').value}</Currency>
+  <product>${document.getElementById('product').value}</product>
+  <description>Solicitud desde Web</description>
+  <paymentType>${document.getElementById('paymentType').value}</paymentType>
+  <mailUser>web@user.com</mailUser>
+</CreditLimitRQ>`;
+
+            try {
+                const res = await fetch('http://localhost:8000/validateCreditLimit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/xml' },
+                    body: xml
+                });
+                
+                const text = await res.text();
+                respDiv.textContent = text;
+            } catch (err) {
+                respDiv.textContent = 'Error conectando al servidor: ' + err.message + '\n\nAsegúrese de que el backend (python app.py) esté corriendo en el puerto 8000.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Validar Crédito';
+            }
+        });
+    </script>
+</body>
+</html>

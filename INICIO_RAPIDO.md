@@ -12,7 +12,7 @@ python --version
 
 ### 2. Configurar Variables de Entorno
 
-La base de datos Supabase ya está configurada. Las credenciales están en el archivo `.env` del proyecto.
+Asegúrate de configurar la base de datos PostgreSQL local y actualizar el archivo `.env`.
 
 ### 3. Instalar Dependencias
 
@@ -29,7 +29,7 @@ pip install -r requirements.txt
 
 **Opción B - Comando directo:**
 ```bash
-python app.py
+python -m uvicorn app:app --reload
 ```
 
 El servicio estará disponible en: `http://localhost:8000`
@@ -47,6 +47,11 @@ Deberías ver:
 }
 ```
 
+## Solución de Problemas
+
+### Error: "Database error"
+
+Verifica que el servicio de PostgreSQL esté corriendo y las credenciales en `.env` sean correctas.
 ## Probar el Web Service
 
 ### Opción 1 - Script de Prueba Automático
@@ -137,13 +142,6 @@ curl -X POST http://localhost:8000/validateCreditLimit \
 <paymentType>CASH</paymentType>
 ```
 
-## Solución de Problemas
-
-### Error: "SUPABASE_URL must be set"
-
-Verifica que el archivo `.env` exista y contenga las credenciales correctas.
-
-### Error de Conexión a Base de Datos
 
 Verifica que las credenciales en `.env` sean correctas y que tengas acceso a Internet.
 
